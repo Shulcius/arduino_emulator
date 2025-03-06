@@ -3,4 +3,5 @@ project(arduino_test)
 
 set(CMAKE_CXX_STANDARD 20)
 
-add_executable(arduino_test emulator.cpp)
+add_executable(arduino_test emulator.cpp
+        test.cpp)

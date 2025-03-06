@@ -2,27 +2,28 @@
 #include <vector>
 #include <chrono>
 #include <thread>
-#include <random>  // Для генерации случайных значений
+#include <random>
 
-// Константы для режима работы пинов
-const int INPUT = 0;
-const int OUTPUT = 1;
+// Constants for the pin operation mode
+const int INPUT = 0x0;
+const int OUTPUT = 0x1;
+const int INPUT_PULLUP = 0x2;
 
-// Симуляция состояний пина
-enum PinState { LOW = 0, HIGH = 1 };
+// Simulation of pin states
+enum PinState { LOW = 0x0, HIGH = 0x1 };
 
-// Структура для хранения настроек пина
+// Structure for storing pin settings
 struct PinSettings {
-    int number;          // Номер пина
-    int mode;            // Режим работы пина (INPUT или OUTPUT)
-    bool active = false; // Флаг активности пина (для симуляции состояний)
+    int pin_num;
+    int mode;
+    bool active = false;
 };
 
-// Класс для управления пинами
+// A class for managing pins
 class PinsManager {
 public:
-    void addPin(int number, int mode) {
-        PinSettings newPin = { .number = number, .mode = mode };
+    void addPin(int pin_num, int mode) {
+        PinSettings newPin = { .pin_num = pin_num, .mode = mode };
         pins.emplace_back(newPin);
     }
 
@@ -32,26 +33,21 @@ public:
         }
     }
 
-    void setDigitalOutput(int pinNumber, PinState state) {
-        auto it = findPinByNumber(pinNumber);
+    void setDigitalOutput(int pin_num, PinState state) {
+        auto it = findPinBypin_num(pin_num);
         if (it != pins.end()) {
-            (*it).active = (state == HIGH);
+            it->active = (state == HIGH);
             digitalWrite(*it, state);
         }
     }
 
-    void setAnalogOutput(int pinNumber, int value) {
-        auto it = findPinByNumber(pinNumber);
-        if (it != pins.end()) {
-            analogWrite(*it, value);
-        }
-    }
+    void setAnalogOutput(int pin_num, int value);
 
-    // Добавляем метод для чтения данных с пина
-    int readInput(int pinNumber) {
-        auto it = findPinByNumber(pinNumber);
+    // Adding a method for reading data from a pin
+    int readInput(int pin_num) {
+        auto it = findPinBypin_num(pin_num);
         if (it != pins.end()) {
-            return (*it).active ? HIGH : LOW;
+            return it->active ? HIGH : LOW;
         }
         return LOW;  // По умолчанию возвращаем LOW
     }
@@ -60,10 +56,13 @@ private:
     std::vector<PinSettings> pins;
 
     void pinMode(const PinSettings& settings) {
-        std::cout << "Configuring pin " << settings.number << " as ";
+        std::cout << "Configuring pin " << settings.pin_num << " as ";
         switch(settings.mode) {
             case INPUT:
                 std::cout << "input\n";
+                break;
+            case INPUT_PULLUP:
+                std::cout << "input_pullup\n";
                 break;
             case OUTPUT:
                 std::cout << "output\n";
@@ -76,29 +75,32 @@ private:
 
     void digitalWrite(const PinSettings& settings, int state) {
         if (settings.mode != OUTPUT) {
-            std::cerr << "Pin " << settings.number << " is not an output pin!\n";
+            std::cerr << "Pin " << settings.pin_num << " is not an output pin!\n";
             return;
         }
 
         if (state == HIGH) {
-            std::cout << "LED ON on pin " << settings.number << "\n";
+            std::cout << "pin ON on " << settings.pin_num << "\n";
         } else {
-            std::cout << "LED OFF on pin " << settings.number << "\n";
+            std::cout << "pin OFF on " << settings.pin_num << "\n";
         }
     }
 
     void analogWrite(const PinSettings& settings, int value) {
         if (settings.mode != OUTPUT) {
-            std::cerr << "Pin " << settings.number << " is not an output pin!\n";
+            std::cerr << "Pin " << settings.pin_num << " is not an output pin!\n";
             return;
         }
 
-        std::cout << "Analog write " << value << " to pin " << settings.number << "\n";
+        std::cout << "Analog write " << value << " to pin " << settings.pin_num << "\n";
     }
 
-    std::vector<PinSettings>::iterator findPinByNumber(int pinNumber) {
-        return std::find_if(pins.begin(), pins.end(),
-                            [&](const PinSettings& pin) { return pin.number == pinNumber; });
+    std::vector<PinSettings>::iterator findPinBypin_num(int pin_num) {
+        return std::find_if(
+            pins.begin(), pins.end(),
+                [&](const PinSettings& pin) {
+                    return pin.pin_num == pin_num;
+                });
     }
 };
 
@@ -148,32 +150,15 @@ public:
 
 int main() {
     PinsManager manager;
-    int PIN_TRIG = 12;
-    int PIN_ECHO = 13;
-    // Настройка пинов
-    manager.addPin(PIN_TRIG, OUTPUT);
-    manager.addPin(PIN_ECHO, INPUT);
-    manager.configurePins();
-    // Основной цикл
-    while (true) {
-        // Генерируем короткий импульс
-        manager.setDigitalOutput(PIN_TRIG, LOW);
-        delayMicroseconds(5);
-        manager.setDigitalOutput(PIN_TRIG, HIGH);
-        // Ждем 10 микросекунд
-        delayMicroseconds(10);
-        manager.setDigitalOutput(PIN_TRIG, LOW);
-        // Измеряем время возврата сигнала
-        long duration = pulseIn(PIN_ECHO, HIGH);
-        // Преобразуем время в расстояние
-        long cm = (duration / 2) / 29.1;
-        // Выводим результат измерения расстояния
-        Serial::print("Расстояние до объекта: ");
-        Serial::print(cm);
-        Serial::println(" см.");
-        // Задержка между измерениями
-        delay(250);
-    }
 
-    return 0;
+    manager.addPin(2, OUTPUT);
+    manager.configurePins();
+
+    // ReSharper disable once CppDFAEndlessLoop
+    while (true) {
+        manager.setDigitalOutput(2, HIGH);
+        delay(50);
+        manager.setDigitalOutput(2, LOW);
+        delay(50);
+    }
 }
