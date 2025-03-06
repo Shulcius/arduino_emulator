@@ -1,0 +1,4 @@
+# ninja log v6
+7	589	1741187077473608851	CMakeFiles/arduino_test.dir/main.cpp.o	562c3f5a07d765a
+523	560	1741194424481234355	arduino_test	bb2de1684a20f8be
+7	523	1741194423965851684	CMakeFiles/arduino_test.dir/emulator.cpp.o	f04ec3683046feb5

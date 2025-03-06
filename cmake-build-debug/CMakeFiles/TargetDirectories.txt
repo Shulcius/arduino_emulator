@@ -1,0 +1,3 @@
+/Users/watermaroon/CLionProjects/arduino-test/cmake-build-debug/CMakeFiles/arduino_test.dir
+/Users/watermaroon/CLionProjects/arduino-test/cmake-build-debug/CMakeFiles/edit_cache.dir
+/Users/watermaroon/CLionProjects/arduino-test/cmake-build-debug/CMakeFiles/rebuild_cache.dir
